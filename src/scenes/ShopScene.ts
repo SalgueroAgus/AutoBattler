@@ -58,37 +58,50 @@ export class ShopScene extends Phaser.Scene {
     }, 160, 48);
 
     // Layout
-    const cardW = 360, cardH = 220, gap = 60;
-    const storeX = this.scale.width / 2 + 360;
-    const storeYStart = 300;
-    const storeGap = cardH + gap;
-    const boardX = 480;
-    const boardYBase = 300;
-    const boardGapY = cardH + gap;
+    const wideW = 360, wideH = 200; // 16:9
+    const tallW = 180, tallH = 320; // 9:16
+    const gap = 60;
+    // Shop grid (2x2) on right using tall cards
+    const storeX0 = this.scale.width - 420;
+    const storeY0 = 320;
+    const storePos = [
+      {x: storeX0 - (tallW/2 + gap/2), y: storeY0},
+      {x: storeX0 + (tallW/2 + gap/2), y: storeY0},
+      {x: storeX0 - (tallW/2 + gap/2), y: storeY0 + tallH + gap},
+      {x: storeX0 + (tallW/2 + gap/2), y: storeY0 + tallH + gap}
+    ];
+    // Board row (3 columns) on left using wide cards
+    const boardY = 360;
+    const boardX0 = 420;
+    const boardPos = [
+      {x: boardX0 - (wideW + gap), y: boardY},
+      {x: boardX0, y: boardY},
+      {x: boardX0 + (wideW + gap), y: boardY}
+    ];
     // Bench grid (2x2) under the board area (left side)
     const benchY1 = this.scale.height - 320;
-    const benchY2 = benchY1 + cardH + 40;
-    const benchX0 = boardX - (cardW/2 + gap/2);
-    const benchX1 = boardX + (cardW/2 + gap/2);
+    const benchY2 = benchY1 + wideH + 40;
+    const benchX0 = boardX0 - (wideW/2 + gap/2);
+    const benchX1 = boardX0 + (wideW/2 + gap/2);
     const benchPos = [ {x:benchX0,y:benchY1}, {x:benchX1,y:benchY1}, {x:benchX0,y:benchY2}, {x:benchX1,y:benchY2} ];
 
     // Drop zones
     const boardFrames: Phaser.GameObjects.Rectangle[] = [];
     const benchFrames: Phaser.GameObjects.Rectangle[] = [];
     for (let i = 0; i < 3; i++) {
-      boardFrames.push(this.add.rectangle(boardX, boardYBase + i*boardGapY, cardW+10, cardH+10, 0x000000, 0).setStrokeStyle(2, 0x30363d).setOrigin(0.5));
-      this.drag.addDropZone(boardX, boardYBase + i*boardGapY, cardW, cardH, { kind: 'board', index: i });
+      boardFrames.push(this.add.rectangle(boardPos[i].x, boardPos[i].y, wideW+10, wideH+10, 0x000000, 0).setStrokeStyle(2, 0x30363d).setOrigin(0.5));
+      this.drag.addDropZone(boardPos[i].x, boardPos[i].y, wideW, wideH, { kind: 'board', index: i });
     }
     for (let i = 0; i < 4; i++) {
-      benchFrames.push(this.add.rectangle(benchPos[i].x, benchPos[i].y, cardW+10, cardH+10, 0x000000, 0).setStrokeStyle(2, 0x30363d).setOrigin(0.5));
-      this.drag.addDropZone(benchPos[i].x, benchPos[i].y, cardW, cardH, { kind: 'bench', index: i });
+      benchFrames.push(this.add.rectangle(benchPos[i].x, benchPos[i].y, wideW+10, wideH+10, 0x000000, 0).setStrokeStyle(2, 0x30363d).setOrigin(0.5));
+      this.drag.addDropZone(benchPos[i].x, benchPos[i].y, wideW, wideH, { kind: 'bench', index: i });
     }
-    const shopFrame = this.add.rectangle(storeX, storeYStart + storeGap, cardW+300, cardH*3 + gap*2, 0x000000, 0).setStrokeStyle(2, 0x30363d).setOrigin(0.5);
-    const shopZone = this.drag.addDropZone(storeX, storeYStart + storeGap, cardW+280, cardH*3 + gap*2, 'shop-area');
+    const shopFrame = this.add.rectangle(storeX0, storeY0 + (tallH + gap)/2, tallW*2 + gap + 40, tallH*2 + gap + 40, 0x000000, 0).setStrokeStyle(2, 0x30363d).setOrigin(0.5);
+    const shopZone = this.drag.addDropZone(storeX0, storeY0 + (tallH + gap)/2, tallW*2 + gap, tallH*2 + gap, 'shop-area');
     // Labels
-    this.add.text(boardX - cardW/2, boardYBase - cardH/2 - 36, 'Board', { color: ui.colors.text, fontSize: '22px' });
-    this.add.text(benchPos[0].x - cardW/2, benchY1 - cardH/2 - 36, 'Bench', { color: ui.colors.text, fontSize: '22px' });
-    this.add.text(storeX - (cardW+300)/2, storeYStart - 36, 'Shop (drag to Buy / drag owned to here to Sell)', { color: ui.colors.accent, fontSize: '18px' });
+    this.add.text(boardPos[0].x - wideW/2, boardY - wideH/2 - 36, 'Board', { color: ui.colors.text, fontSize: '22px' });
+    this.add.text(benchPos[0].x - wideW/2, benchY1 - wideH/2 - 36, 'Bench', { color: ui.colors.text, fontSize: '22px' });
+    this.add.text(shopFrame.x - (tallW + gap), shopFrame.y - (tallH + gap), 'Shop (drag to Buy / drag owned to here to Sell)', { color: ui.colors.accent, fontSize: '18px' });
 
     // Renderers
     const defById: Record<string, any> = Object.fromEntries([...units.units, ...champsCfg.champions].map((u: any) => [u.id, u]));
@@ -99,12 +112,13 @@ export class ShopScene extends Phaser.Scene {
         const it = this.currentStore[i];
         if (!it) { this.storeCards.push(null); continue; }
         const def = defById[it.defId];
-        const card = new UnitCard(this, storeX, storeYStart + i*storeGap, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars: 1, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, cardW, cardH, 'compact');
+        const pos = storePos[i];
+        const card = new UnitCard(this, pos.x, pos.y, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars: 1, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, tallW, tallH, 'compactTall');
         card.setInteractive({ useHandCursor: true }).on('pointerup', () => { if (!(card as any).__dragging) openModalShop(i, it); });
         this.drag.makeDraggable(card, { origin: 'shop', index: i, data: it }, (payload, target) => handleDrop(payload, target), (hover) => highlightZones(hover));
         // Price pill
         const price = econ.prices.rarity[def.rarity] || 0;
-        const pill = this.add.rectangle(card.x + cardW/2 - 50, card.y - cardH/2 + 18, 90, 28, 0x0f141a).setStrokeStyle(2, 0x30363d).setOrigin(0.5);
+        const pill = this.add.rectangle(card.x + tallW/2 - 50, card.y - tallH/2 + 18, 90, 28, 0x0f141a).setStrokeStyle(2, 0x30363d).setOrigin(0.5);
         const pillText = this.add.text(pill.x, pill.y, `${price} XP`, { color: ui.colors.text, fontSize: '16px' }).setOrigin(0.5);
         this.storeCards.push(card);
         // Group so they clean up together
@@ -123,7 +137,7 @@ export class ShopScene extends Phaser.Scene {
         const slot = board.active[i];
         if (!slot) continue;
         const def = defById[slot.defId];
-        const card = new UnitCard(this, boardX, boardYBase + i*boardGapY, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars: slot.stars, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, cardW, cardH, 'compact');
+        const card = new UnitCard(this, boardPos[i].x, boardPos[i].y, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars: slot.stars, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, wideW, wideH, 'compactWide');
         card.setInteractive({ useHandCursor: true }).on('pointerup', () => { if (!(card as any).__dragging) openModalOwned('board', i); });
         this.drag.makeDraggable(card, { origin: 'board', index: i, data: { defId: slot.defId, stars: slot.stars } }, (p,t)=>handleDrop(p,t), (hover)=>highlightZones(hover));
         this.boardCards.active[i] = card;
@@ -132,7 +146,7 @@ export class ShopScene extends Phaser.Scene {
         const slot = board.bench[i];
         if (!slot) continue;
         const def = defById[slot.defId];
-        const card = new UnitCard(this, benchPos[i].x, benchPos[i].y, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars: slot.stars, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, cardW, cardH, 'compact');
+        const card = new UnitCard(this, benchPos[i].x, benchPos[i].y, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars: slot.stars, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, wideW, wideH, 'compactWide');
         card.setInteractive({ useHandCursor: true }).on('pointerup', () => { if (!(card as any).__dragging) openModalOwned('bench', i); });
         this.drag.makeDraggable(card, { origin: 'bench', index: i, data: { defId: slot.defId, stars: slot.stars } }, (p,t)=>handleDrop(p,t), (hover)=>highlightZones(hover));
         this.boardCards.bench[i] = card;
@@ -153,22 +167,23 @@ export class ShopScene extends Phaser.Scene {
       if (!target) return false;
       // Helper to place into a slot, with replacement allowed
       const place = (area: 'bench'|'board', index: number, newSlot: any) => {
-        const cur = board[area][index];
+        const areaKey = area === 'board' ? 'active' : 'bench';
+        const cur = board[areaKey][index];
         if (cur) {
           // swap between bench and board
           if (payload.origin === 'bench' && area === 'board') {
-            const tmp = board.bench[payload.index];
-            board.bench[payload.index] = cur; // send replaced to bench
-            board.board = board.board; // noop
-          }
-          if (payload.origin === 'board' && area === 'bench') {
-            const tmp = board.active[payload.index];
-            board.active[payload.index] = cur; // send replaced to board
+            // Dragging from bench to board, send replaced board unit back to original bench index
+            const srcIdx = payload.index;
+            board.bench[srcIdx] = cur;
+          } else if (payload.origin === 'board' && area === 'bench') {
+            // Dragging from board to bench, send replaced bench unit back to original board index
+            const srcIdx = payload.index;
+            board.active[srcIdx] = cur;
           }
         }
         if (payload.origin === 'bench') board.bench[payload.index] = null;
         if (payload.origin === 'board') board.active[payload.index] = null;
-        board[area][index] = newSlot;
+        board[areaKey][index] = newSlot;
         this.registry.set('match', m);
         renderBoard();
         return true;
