@@ -14,11 +14,12 @@ export class BattleScene extends Phaser.Scene {
     const rng: RNG = this.registry.get('rng');
     const players = this.registry.get('players') as Array<{id:string,human:boolean}>;
     const unitsCfg = this.registry.get('cfg:units') as { units: any[] };
-    const defById: Record<string, any> = Object.fromEntries(unitsCfg.units.map((u: any) => [u.id, u]));
+    const champsCfg = this.registry.get('cfg:champs') as { champions: any[] };
+    const defById: Record<string, any> = Object.fromEntries([...unitsCfg.units, ...champsCfg.champions].map((u: any) => [u.id, u]));
     const match: MatchState = this.registry.get('match');
 
     // Build minimal PlayerStates for P1 and P2 with 3 actives resurrected from selection/purchases (MVP: random)
-    const pickUnits = (count: number) => rng.shuffle(unitsCfg.units.filter((u: any) => !u.isChampion)).slice(0, count);
+    const pickUnits = (count: number) => rng.shuffle(unitsCfg.units).slice(0, count);
     const toInstance = (def: any): UnitInstance => ({
       id: `${def.id}-${Math.floor(rng.next()*1e6)}`,
       defId: def.id,
@@ -27,11 +28,10 @@ export class BattleScene extends Phaser.Scene {
       level: 1,
       stars: 1,
       stats: { ...def.stats },
-      ability: { ...def.ability },
       tags: def.tags.slice(),
-      isChampion: def.isChampion,
-      manaGain: { ...def.manaGain },
-      current: { hp: def.stats.hp, mana: 0 }
+      isChampion: !!def.isChampion,
+      passives: def.passives ? def.passives.slice() : [],
+      current: { hp: def.stats.hp }
     });
 
     // Build from match board
@@ -56,14 +56,7 @@ export class BattleScene extends Phaser.Scene {
     const applyStars = (u: UnitInstance, stars: number) => {
       if (stars > 1) {
         const mult = starMultiplier(stars);
-        u.stats = {
-          ...u.stats,
-          hp: Math.round(u.stats.hp * mult),
-          atkPhys: Math.round(u.stats.atkPhys * mult),
-          atkMag: Math.round(u.stats.atkMag * mult),
-          defPhys: Math.round(u.stats.defPhys * mult),
-          defMag: Math.round(u.stats.defMag * mult)
-        };
+        u.stats = { ...u.stats, hp: Math.round(u.stats.hp * mult), dmg: Math.round(u.stats.dmg * mult) };
         u.current.hp = u.stats.hp;
         u.stars = stars;
       }
@@ -72,6 +65,12 @@ export class BattleScene extends Phaser.Scene {
 
     const p1ActiveInst = p1Defs.map((d, i) => d ? applyStars(toInstance(d), p1Slots[i]!.stars) : null);
     const p2ActiveInst = p2Defs.map((d, i) => d ? applyStars(toInstance(d), p2Slots[i] ? p2Slots[i]!.stars : 1) : null);
+    const p1BenchSlots = (match?.player?.bench || []);
+    const p2BenchSlots = (match?.enemy?.bench || []);
+    const p1BenchDefs = p1BenchSlots.map(s => s ? defById[s.defId] : null);
+    const p2BenchDefs = p2BenchSlots.map(s => s ? defById[s.defId] : null);
+    const p1BenchInst = p1BenchDefs.map((d, i) => d ? applyStars(toInstance(d), p1BenchSlots[i]!.stars) : null);
+    const p2BenchInst = p2BenchDefs.map((d, i) => d ? applyStars(toInstance(d), p2BenchSlots[i]!.stars) : null);
 
     const mkPlayer = (id: string, actives: UnitInstance[]): PlayerState => ({
       userId: id, hp: game.initialPlayerHP, xp: 0, winStreak: 0, shopLevel: 1, rerollCountThisStage: 0,
@@ -87,10 +86,9 @@ export class BattleScene extends Phaser.Scene {
       const star = this.add.text(40, -25, stars>1 ? `★${stars}` : '', { color: ui.colors.warn, fontSize: '12px' });
       const hpBg = this.add.rectangle(0, 10, 110, 8, 0x222222).setOrigin(0.5, 0.5);
       const hp = this.add.rectangle(-55, 10, 110, 8, 0x2ea043).setOrigin(0, 0.5);
-      const mpBg = this.add.rectangle(0, 22, 110, 6, 0x222222).setOrigin(0.5, 0.5);
-      const mp = this.add.rectangle(-55, 22, 110, 6, 0x58a6ff).setOrigin(0, 0.5);
-      cont.add([rect, name, star, hpBg, hp, mpBg, mp]);
-      return { cont, rect, name, star, hp, mp };
+      const dmgTxt = this.add.text(-50, 22, def ? `DMG ${def.stats.dmg}` : '', { color: ui.colors.accent, fontSize: '11px' });
+      cont.add([rect, name, star, hpBg, hp, dmgTxt]);
+      return { cont, rect, name, star, hp } as any;
     };
 
     const p1SlotsUI = [0,1,2].map(i => makeSlot(200, 120 + i*90, p1Defs[i], p1Slots[i]?.stars || 1));
@@ -118,16 +116,14 @@ export class BattleScene extends Phaser.Scene {
         if (s && uiSlot) {
           const pct = Math.max(0, Math.min(1, s.hp / (maxHP1[i] || 1)));
           uiSlot.hp.width = 110 * pct;
-          const mpct = Math.max(0, Math.min(1, s.mana / (p1Defs[i]?.stats.manaMax || 100)));
-          uiSlot.mp.width = 110 * mpct;
+          // no mana bar in v2
         }
         const s2 = snap.p2[i];
         const uiSlot2 = p2SlotsUI[i];
         if (s2 && uiSlot2) {
           const pct2 = Math.max(0, Math.min(1, s2.hp / (maxHP2[i] || 1)));
           uiSlot2.hp.width = 110 * pct2;
-          const mpct2 = Math.max(0, Math.min(1, s2.mana / (p2Defs[i]?.stats.manaMax || 100)));
-          uiSlot2.mp.width = 110 * mpct2;
+          // no mana bar in v2
         }
       }
     };
@@ -136,8 +132,8 @@ export class BattleScene extends Phaser.Scene {
     const origRandom = Math.random;
     Math.random = () => rng.next();
     const { events, result } = simulateRoundWithEvents(
-      { ...mkPlayer(players[0].id, []), board: { active: p1ActiveInst as any, bench: [null,null,null,null], championId: '' }, store: [], killsThisStage: 0, drainedHPThisStage: 0, damageThisStage: 0 },
-      { ...mkPlayer(players[1].id, []), board: { active: p2ActiveInst as any, bench: [null,null,null,null], championId: '' }, store: [], killsThisStage: 0, drainedHPThisStage: 0, damageThisStage: 0 },
+      { ...mkPlayer(players[0].id, []), board: { active: p1ActiveInst as any, bench: p1BenchInst as any, championId: '' }, store: [], killsThisStage: 0, drainedHPThisStage: 0, damageThisStage: 0 },
+      { ...mkPlayer(players[1].id, []), board: { active: p2ActiveInst as any, bench: p2BenchInst as any, championId: '' }, store: [], killsThisStage: 0, drainedHPThisStage: 0, damageThisStage: 0 },
       game.playerLossBaseDamage
     );
     Math.random = origRandom;
@@ -147,7 +143,9 @@ export class BattleScene extends Phaser.Scene {
     const doEvent = () => {
       if (idx >= events.length) return;
       const ev = events[idx++] as CombatEvent;
-      if (ev.type === 'act') {
+      if (ev.type === 'pre') {
+        updateBars(ev.snapshots);
+      } else if (ev.type === 'act') {
         const actorUI = ev.actorSide === 1 ? p1SlotsUI[ev.actorSlot] : p2SlotsUI[ev.actorSlot];
         const targetUI = ev.actorSide === 1 ? p2SlotsUI[ev.targetSlot] : p1SlotsUI[ev.targetSlot];
         if (actorUI) this.tweens.add({ targets: actorUI.rect, duration: timings.highlightMs, scale: 1.06, yoyo: true });

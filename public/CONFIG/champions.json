@@ -1,0 +1,104 @@
+{
+  "champions": [
+    {
+      "id": "champ_zeus",
+      "name": "Zeus",
+      "description": "God of thunder. Start of battle strikes all enemies.",
+      "rarity": "EPIC",
+      "isChampion": true,
+      "stats": { "hp": 60, "dmg": 10, "critChance": 0.1, "critMultiplier": 1.5 },
+      "tags": ["MAGE"],
+      "passives": [
+        {
+          "id": "storm_start",
+          "description": "Deal 5 damage to all enemies at battle start.",
+          "trigger": "preBattle",
+          "effectZone": "any",
+          "scope": { "side": "enemies" },
+          "effect": { "type": "damage", "amount": 5, "target": "enemies" }
+        }
+      ]
+    },
+    {
+      "id": "champ_athena",
+      "name": "Athena",
+      "description": "Protector. Buffs tanks.",
+      "rarity": "RARE",
+      "isChampion": true,
+      "stats": { "hp": 70, "dmg": 8, "critChance": 0.05, "critMultiplier": 1.5 },
+      "tags": ["TANK"],
+      "passives": [
+        {
+          "id": "guardians_oath",
+          "description": "+2 HP to all allied TANK at battle start.",
+          "trigger": "preBattle",
+          "effectZone": "any",
+          "scope": { "side": "allies", "filterTags": ["TANK"], "includeSelf": true },
+          "stacking": { "mode": "add" },
+          "effect": { "type": "addStat", "stat": "hp", "amount": 2 }
+        }
+      ]
+    },
+    {
+      "id": "champ_hermes",
+      "name": "Hermes",
+      "description": "Swift strikes.",
+      "rarity": "RARE",
+      "isChampion": true,
+      "stats": { "hp": 50, "dmg": 12, "critChance": 0.15, "critMultiplier": 1.6 },
+      "tags": ["ROGUE"],
+      "passives": [
+        {
+          "id": "quick_cut",
+          "description": "+2 DMG on attack (self).",
+          "trigger": "onAttack",
+          "effectZone": "any",
+          "scope": { "side": "self", "includeSelf": true },
+          "effect": { "type": "addStat", "stat": "dmg", "amount": 2 },
+          "limits": { "maxProcsPerBattle": 999 }
+        }
+      ]
+    },
+    {
+      "id": "champ_hades",
+      "name": "Hades",
+      "description": "Death burst.",
+      "rarity": "EPIC",
+      "isChampion": true,
+      "stats": { "hp": 65, "dmg": 9, "critChance": 0.1, "critMultiplier": 1.5 },
+      "tags": ["MAGE"],
+      "passives": [
+        {
+          "id": "soul_burst",
+          "description": "On death, deal 6 damage to all enemies.",
+          "trigger": "onDeath",
+          "effectZone": "any",
+          "scope": { "side": "enemies" },
+          "effect": { "type": "damage", "amount": 6, "target": "enemies" },
+          "limits": { "maxProcsPerBattle": 1 }
+        }
+      ]
+    },
+    {
+      "id": "champ_ares",
+      "name": "Ares",
+      "description": "War cry persists even if sold.",
+      "rarity": "LEGENDARY",
+      "isChampion": true,
+      "stats": { "hp": 55, "dmg": 13, "critChance": 0.12, "critMultiplier": 1.6 },
+      "tags": ["FIGHTER"],
+      "passives": [
+        {
+          "id": "war_cry",
+          "description": "+1 DMG to all FIGHTER allies at battle start (persistent).",
+          "trigger": "preBattle",
+          "effectZone": "persistent",
+          "scope": { "side": "allies", "filterTags": ["FIGHTER"], "includeSelf": true },
+          "stacking": { "mode": "add" },
+          "effect": { "type": "addStat", "stat": "dmg", "amount": 1 }
+        }
+      ]
+    }
+  ]
+}
+

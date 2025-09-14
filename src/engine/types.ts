@@ -1,16 +1,38 @@
 export type Rarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
 
 export type UnitStats = {
-  hp: number; defPhys: number; defMag: number; atkPhys: number; atkMag: number; atkSpeed: number; crit: number; critDmg: number; manaMax: number;
+  hp: number;
+  dmg: number;
+  critChance: number; // hidden
+  critMultiplier: number; // hidden
 };
 
-export type Ability = { kind: string; cost: number; value: number; desc: string };
+export type PassiveTrigger = 'preBattle' | 'onAttack' | 'onReceivedDamage' | 'onKill' | 'onDeath' | 'onPurchase' | 'onSold' | 'onLevelUp';
+export type PassiveEffectZone = 'board' | 'bench' | 'any' | 'persistent';
+export type PassiveScopeSide = 'self' | 'allies' | 'enemies' | 'all';
+export type PassiveStackingMode = 'add' | 'multiply';
+
+export type PassiveEffect =
+  | { type: 'addStat'; stat: 'hp' | 'dmg'; amount: number }
+  | { type: 'mulStat'; stat: 'hp' | 'dmg'; factor: number }
+  | { type: 'damage'; amount: number; target: 'allies' | 'enemies' | 'self' };
+
+export type PassiveSpec = {
+  id?: string;
+  description?: string;
+  trigger: PassiveTrigger;
+  effectZone: PassiveEffectZone; // where it must be to apply
+  scope: { side: PassiveScopeSide; filterTags?: string[]; includeSelf?: boolean };
+  stacking?: { mode: PassiveStackingMode; maxStacks?: number };
+  effect: PassiveEffect;
+  limits?: { maxProcsPerBattle?: number };
+};
 
 export type UnitInstance = {
   id: string; defId: string; name: string; rarity: Rarity; level: number; stars: number;
-  stats: UnitStats; ability: Ability; tags: string[]; isChampion: boolean;
-  manaGain: { perAttack: number; perHitTaken: number };
-  current: { hp: number; mana: number; shield?: number };
+  stats: UnitStats; tags: string[]; isChampion: boolean;
+  passives: PassiveSpec[];
+  current: { hp: number };
 };
 
 export type PlayerBoard = {

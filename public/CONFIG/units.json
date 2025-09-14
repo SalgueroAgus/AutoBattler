@@ -1,83 +1,49 @@
 {
-  "synergies": [
-    {
-      "tag": "ARCANE",
-      "thresholds": [2, 4],
-      "effects": {
-        "2": {"magicAmpPct": 0.1},
-        "4": {"magicAmpPct": 0.25}
-      }
-    },
-    {
-      "tag": "BRUISER",
-      "thresholds": [2, 4],
-      "effects": {
-        "2": {"hpBonusPct": 0.1},
-        "4": {"hpBonusPct": 0.25}
-      }
-    }
-  ],
   "units": [
-    {
-      "id": "champ_aegis",
-      "name": "Aegis",
-      "rarity": "RARE",
-      "isChampion": true,
-      "stats": {"hp": 60, "defPhys": 6, "defMag": 4, "atkPhys": 10, "atkMag": 0, "atkSpeed": 1.0, "crit": 0.1, "critDmg": 1.5, "manaMax": 100},
-      "manaGain": {"perAttack": 40, "perHitTaken": 20},
-      "ability": {"kind": "shield", "cost": 100, "value": 25, "desc": "Gain a shield for 25 HP (replaces attack)."},
-      "tags": ["BRUISER"]
+    {"id":"u_guard","name":"Guard","description":"Basic tank","rarity":"COMMON","isChampion":false,
+     "stats":{"hp": 35, "dmg": 6, "critChance": 0.05, "critMultiplier": 1.5},
+     "tags":["TANK"],
+     "passives":[{"trigger":"preBattle","effectZone":"board","scope":{"side":"self","includeSelf":true},"effect":{"type":"addStat","stat":"hp","amount":2}}]
     },
-    {
-      "id": "champ_ember",
-      "name": "Ember",
-      "rarity": "EPIC",
-      "isChampion": true,
-      "stats": {"hp": 45, "defPhys": 3, "defMag": 7, "atkPhys": 6, "atkMag": 12, "atkSpeed": 0.9, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
-      "manaGain": {"perAttack": 35, "perHitTaken": 20},
-      "ability": {"kind": "nuke", "cost": 100, "value": 20, "desc": "Deal 20 magic to the front enemy (replaces attack)."},
-      "tags": ["ARCANE"]
-    },
-    {
-      "id": "u_blade",
-      "name": "Blade",
-      "rarity": "COMMON",
-      "isChampion": false,
-      "stats": {"hp": 40, "defPhys": 4, "defMag": 2, "atkPhys": 9, "atkMag": 0, "atkSpeed": 1.1, "crit": 0.1, "critDmg": 1.5, "manaMax": 100},
-      "manaGain": {"perAttack": 50, "perHitTaken": 10},
-      "ability": {"kind": "onHitManaAttack", "cost": 100, "value": 12, "desc": "When mana full, add +12 physical to basic (does not replace)."},
-      "tags": ["BRUISER"]
-    },
-    {
-      "id": "u_myst",
-      "name": "Myst",
-      "rarity": "UNCOMMON",
-      "isChampion": false,
-      "stats": {"hp": 35, "defPhys": 2, "defMag": 5, "atkPhys": 5, "atkMag": 10, "atkSpeed": 1.0, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
-      "manaGain": {"perAttack": 34, "perHitTaken": 20},
-      "ability": {"kind": "manaReplace", "cost": 100, "value": 16, "desc": "When full mana, cast 16 magic instead of basic."},
-      "tags": ["ARCANE"]
-    },
-    {
-      "id": "u_guard",
-      "name": "Guard",
-      "rarity": "COMMON",
-      "isChampion": false,
-      "stats": {"hp": 55, "defPhys": 6, "defMag": 3, "atkPhys": 7, "atkMag": 0, "atkSpeed": 0.8, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
-      "manaGain": {"perAttack": 25, "perHitTaken": 30},
-      "ability": {"kind": "triggerOnDamaged", "cost": 100, "value": 10, "desc": "On reaching full mana from damage taken, taunt-attack for +10 physical."},
-      "tags": ["BRUISER"]
-    },
-    {
-      "id": "u_spark",
-      "name": "Spark",
-      "rarity": "RARE",
-      "isChampion": false,
-      "stats": {"hp": 30, "defPhys": 2, "defMag": 2, "atkPhys": 4, "atkMag": 14, "atkSpeed": 1.2, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
-      "manaGain": {"perAttack": 60, "perHitTaken": 10},
-      "ability": {"kind": "fastManaNuke", "cost": 100, "value": 14, "desc": "Fast caster: frequent 14 magic nukes (replaces attack)."},
-      "tags": ["ARCANE"]
-    }
+    {"id":"u_blade","name":"Blade","description":"Aggressive fighter","rarity":"COMMON","isChampion":false,
+     "stats":{"hp": 28, "dmg": 10, "critChance": 0.1, "critMultiplier": 1.6},
+     "tags":["FIGHTER"],
+     "passives":[]},
+    {"id":"u_marks","name":"Marks","description":"Ranged marksman","rarity":"UNCOMMON","isChampion":false,
+     "stats":{"hp": 24, "dmg": 12, "critChance": 0.12, "critMultiplier": 1.7},
+     "tags":["MARKSMAN"],
+     "passives":[]},
+    {"id":"u_myst","name":"Myst","description":"Arcane apprentice","rarity":"UNCOMMON","isChampion":false,
+     "stats":{"hp": 26, "dmg": 9, "critChance": 0.08, "critMultiplier": 1.6},
+     "tags":["MAGE"],
+     "passives":[{"trigger":"preBattle","effectZone":"board","scope":{"side":"allies","filterTags":["MAGE"],"includeSelf":true},"stacking":{"mode":"add"},"effect":{"type":"addStat","stat":"dmg","amount":1}}]},
+    {"id":"u_rogue","name":"Shade","description":"Backstabber","rarity":"UNCOMMON","isChampion":false,
+     "stats":{"hp": 22, "dmg": 11, "critChance": 0.18, "critMultiplier": 1.8},
+     "tags":["ROGUE"],
+     "passives":[{"trigger":"onAttack","effectZone":"board","scope":{"side":"self"},"effect":{"type":"addStat","stat":"dmg","amount":2},"limits":{"maxProcsPerBattle":999}}]},
+    {"id":"u_support","name":"Cleric","description":"Small bolster","rarity":"COMMON","isChampion":false,
+     "stats":{"hp": 25, "dmg": 5, "critChance": 0.05, "critMultiplier": 1.5},
+     "tags":["SUPPORT"],
+     "passives":[{"trigger":"preBattle","effectZone":"board","scope":{"side":"allies","includeSelf":true},"effect":{"type":"addStat","stat":"hp","amount":1}}]},
+    {"id":"u_brute","name":"Brute","description":"High hp","rarity":"RARE","isChampion":false,
+     "stats":{"hp": 45, "dmg": 8, "critChance": 0.07, "critMultiplier": 1.6},
+     "tags":["TANK"],
+     "passives":[]},
+    {"id":"u_pyro","name":"Pyro","description":"Pre-battle scorch","rarity":"RARE","isChampion":false,
+     "stats":{"hp": 30, "dmg": 9, "critChance": 0.1, "critMultiplier": 1.6},
+     "tags":["MAGE"],
+     "passives":[{"trigger":"preBattle","effectZone":"board","scope":{"side":"enemies"},"effect":{"type":"damage","amount":2,"target":"enemies"}}]},
+    {"id":"u_glass","name":"Glass","description":"High dmg low hp","rarity":"RARE","isChampion":false,
+     "stats":{"hp": 18, "dmg": 16, "critChance": 0.15, "critMultiplier": 1.8},
+     "tags":["MARKSMAN"],
+     "passives":[]},
+    {"id":"u_thorns","name":"Thorns","description":"Reflective pain","rarity":"UNCOMMON","isChampion":false,
+     "stats":{"hp": 32, "dmg": 7, "critChance": 0.05, "critMultiplier": 1.5},
+     "tags":["TANK"],
+     "passives":[{"trigger":"onReceivedDamage","effectZone":"board","scope":{"side":"enemies"},"effect":{"type":"damage","amount":2,"target":"enemies"},"limits":{"maxProcsPerBattle":999}}]},
+    {"id":"u_nopassive","name":"Soldier","description":"No passive","rarity":"COMMON","isChampion":false,
+     "stats":{"hp": 30, "dmg": 9, "critChance": 0.08, "critMultiplier": 1.5},
+     "tags":["FIGHTER"],
+     "passives":[]}
   ]
 }
-

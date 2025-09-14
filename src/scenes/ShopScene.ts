@@ -25,8 +25,9 @@ export class ShopScene extends Phaser.Scene {
     const econ = this.registry.get('cfg:econ');
     const shop = this.registry.get('cfg:shop');
     const units = this.registry.get('cfg:units');
+    const champsCfg = this.registry.get('cfg:champs');
     const chosenChampionId: string | null = this.registry.get('playerChampion') || null;
-    const chosenChampion = chosenChampionId ? units.units.find((u: any) => u.id === chosenChampionId) : null;
+    const chosenChampion = chosenChampionId ? champsCfg.champions.find((u: any) => u.id === chosenChampionId) : null;
     const match = this.registry.get('match');
     const rng: RNG = this.registry.get('rng');
 

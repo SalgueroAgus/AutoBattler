@@ -60,18 +60,34 @@ export async function loadShopConfig(): Promise<ShopConfig> {
 export type UnitDef = {
   id: string;
   name: string;
+  description?: string;
   rarity: string;
   isChampion: boolean;
-  stats: { hp: number; defPhys: number; defMag: number; atkPhys: number; atkMag: number; atkSpeed: number; crit: number; critDmg: number; manaMax: number };
-  manaGain: { perAttack: number; perHitTaken: number };
-  ability: { kind: string; cost: number; value: number; desc: string };
+  stats: { hp: number; dmg: number; critChance: number; critMultiplier: number };
   tags: string[];
+  passives: Array<{
+    id?: string;
+    description?: string;
+    trigger: string;
+    effectZone: 'board' | 'bench' | 'any' | 'persistent';
+    scope: { side: 'self' | 'allies' | 'enemies' | 'all'; filterTags?: string[]; includeSelf?: boolean };
+    stacking?: { mode: 'add' | 'multiply'; maxStacks?: number };
+    effect: { type: 'addStat' | 'mulStat' | 'damage'; stat?: 'hp' | 'dmg'; amount?: number; factor?: number; target?: 'allies' | 'enemies' | 'self' };
+    limits?: { maxProcsPerBattle?: number };
+  }>;
 };
 
-export type UnitsConfig = { synergies: any[]; units: UnitDef[] };
+export type UnitsConfig = { units: UnitDef[] };
 
 export async function loadUnitsConfig(): Promise<UnitsConfig> {
   return loadJSON(`${CONFIG_ROOT}/units.json`);
+}
+
+export type ChampionDef = Omit<UnitDef, 'isChampion'> & { isChampion: true };
+export type ChampionsConfig = { champions: ChampionDef[] };
+
+export async function loadChampionsConfig(): Promise<ChampionsConfig> {
+  return loadJSON(`${CONFIG_ROOT}/champions.json`);
 }
 
 export type AccountConfig = {
