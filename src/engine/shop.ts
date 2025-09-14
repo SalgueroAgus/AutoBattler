@@ -19,14 +19,31 @@ export function rollRarity(shopLevel: number, cfg: ShopConfig, rng: RNG): string
   return entries[entries.length - 1][0];
 }
 
-export function generateStore(shopLevel: number, cfg: ShopConfig, priceByRarity: Record<string, number>, poolIdsByRarity: Record<string, string[]>, rng: RNG): StoreEntry[] {
+export function generateStore(
+  shopLevel: number,
+  cfg: ShopConfig,
+  priceByRarity: Record<string, number>,
+  poolIdsByRarity: Record<string, string[]>,
+  rng: RNG,
+  opts?: { championId?: string; championRarity?: string; championAllowed?: boolean }
+): StoreEntry[] {
   const out: StoreEntry[] = [];
   for (let i = 0; i < cfg.visibleOptions; i++) {
     const rarity = rollRarity(shopLevel, cfg, rng);
-    const pool = poolIdsByRarity[rarity] || [];
-    const defId = pool.length ? rng.pick(pool) : rng.pick(Object.values(poolIdsByRarity).flat());
+    let defId: string | undefined;
+    // Only allow the player's chosen champion, and only when rarity matches
+    if (opts?.championAllowed && opts?.championId && opts?.championRarity === rarity) {
+      defId = opts.championId;
+    } else {
+      const pool = poolIdsByRarity[rarity] || [];
+      if (pool.length) defId = rng.pick(pool);
+      else {
+        const all = Object.values(poolIdsByRarity).flat();
+        defId = all.length ? rng.pick(all) : undefined;
+      }
+    }
+    if (!defId) continue;
     out.push({ defId, rarity: rarity as any, price: priceByRarity[rarity] || 3 });
   }
   return out;
 }
-

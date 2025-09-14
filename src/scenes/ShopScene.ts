@@ -25,11 +25,14 @@ export class ShopScene extends Phaser.Scene {
     const econ = this.registry.get('cfg:econ');
     const shop = this.registry.get('cfg:shop');
     const units = this.registry.get('cfg:units');
+    const chosenChampionId: string | null = this.registry.get('playerChampion') || null;
+    const chosenChampion = chosenChampionId ? units.units.find((u: any) => u.id === chosenChampionId) : null;
     const match = this.registry.get('match');
     const rng: RNG = this.registry.get('rng');
 
     const poolIdsByRarity: Record<string, string[]> = {};
     for (const u of units.units) {
+      if (u.isChampion) continue; // exclude all champions from the general pool
       poolIdsByRarity[u.rarity] = poolIdsByRarity[u.rarity] || [];
       poolIdsByRarity[u.rarity].push(u.id);
     }
@@ -38,7 +41,18 @@ export class ShopScene extends Phaser.Scene {
     this.rerolls = 0; // reset per stage
     let shopLevel = match?.shopLevel || 1;
     const roll = () => {
-      this.currentStore = generateStore(shopLevel, shop, econ.prices.rarity, poolIdsByRarity, rng);
+      this.currentStore = generateStore(
+        shopLevel,
+        shop,
+        econ.prices.rarity,
+        poolIdsByRarity,
+        rng,
+        {
+          championId: chosenChampionId || undefined,
+          championRarity: chosenChampion?.rarity,
+          championAllowed: shop.champion?.appearsForLeveling
+        }
+      );
       this.refreshUI();
     };
 

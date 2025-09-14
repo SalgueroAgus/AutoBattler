@@ -10,6 +10,7 @@ export type UIConfig = {
   canvas: { width: number; height: number; backgroundColor: string };
   grid: { cols: number; rows: number; cell: { w: number; h: number }; padding: number };
   colors: Record<string, string>;
+  battle?: { actionMs: number; highlightMs: number; floatMs: number };
 };
 
 export async function loadUIConfig(): Promise<UIConfig> {

@@ -49,43 +49,62 @@ export function addUnitToBench(ms: MatchState, side: 'player'|'enemy', defId: st
 export function tryMergeAll(ms: MatchState, side: 'player'|'enemy'): Array<{ defId: string; fromStars: number; toStars: number }> {
   const b = ms[side];
   const merges: Array<{ defId: string; fromStars: number; toStars: number }> = [];
-  const gather = (stars: number) => {
-    const ids: Record<string, number[]> = {};
-    const push = (slot: Slot | null, index: number, area: 'active'|'bench') => {
-      if (!slot || slot.stars !== stars) return;
-      ids[slot.defId] = ids[slot.defId] || [];
-      ids[slot.defId].push(area === 'active' ? index : index + 100); // bench indices offset
-    };
-    b.active.forEach((s, i) => push(s, i, 'active'));
-    b.bench.forEach((s, i) => push(s, i, 'bench'));
-    return ids;
+
+  const read = (pos: { area: 'active'|'bench'; idx: number }): Slot | null => pos.area === 'bench' ? b.bench[pos.idx] : b.active[pos.idx];
+  const write = (pos: { area: 'active'|'bench'; idx: number }, val: Slot | null) => {
+    if (pos.area === 'bench') b.bench[pos.idx] = val; else b.active[pos.idx] = val;
   };
-  // merge stars=1 to 2, then 2 to 3
-  for (const s of [1,2]) {
-    const ids = gather(s);
-    for (const [defId, indices] of Object.entries(ids)) {
-      while (indices.length >= 2) {
-        const a = indices.pop()!;
-        const d = indices.pop()!;
-        const read = (pos: number): Slot | null => pos >= 100 ? b.bench[pos-100] : b.active[pos];
-        const write = (pos: number, val: Slot | null) => { if (pos >= 100) b.bench[pos-100] = val; else b.active[pos] = val; };
-        // remove two
-        write(a, null);
-        write(d, null);
-        // place upgraded in first empty bench slot (prefer active first position)
-        const upgraded: Slot = { defId, stars: s + 1 };
-        let placed = false;
-        for (let i = 0; i < b.active.length; i++) if (b.active[i] === null) { b.active[i] = upgraded; placed = true; break; }
-        if (!placed) {
-          for (let i = 0; i < b.bench.length; i++) if (b.bench[i] === null) { b.bench[i] = upgraded; placed = true; break; }
+
+  const recompute = () => {
+    const map = new Map<string, Map<number, Array<{ area:'active'|'bench'; idx:number }>>>();
+    for (let i = 0; i < b.active.length; i++) {
+      const s = b.active[i]; if (!s) continue;
+      if (!map.has(s.defId)) map.set(s.defId, new Map());
+      const byStar = map.get(s.defId)!;
+      if (!byStar.has(s.stars)) byStar.set(s.stars, []);
+      byStar.get(s.stars)!.push({ area:'active', idx:i });
+    }
+    for (let i = 0; i < b.bench.length; i++) {
+      const s = b.bench[i]; if (!s) continue;
+      if (!map.has(s.defId)) map.set(s.defId, new Map());
+      const byStar = map.get(s.defId)!;
+      if (!byStar.has(s.stars)) byStar.set(s.stars, []);
+      byStar.get(s.stars)!.push({ area:'bench', idx:i });
+    }
+    return map;
+  };
+
+  const firstEmpty = (): { area:'active'|'bench'; idx:number } | null => {
+    for (let i = 0; i < b.active.length; i++) if (b.active[i] === null) return { area:'active', idx:i };
+    for (let i = 0; i < b.bench.length; i++) if (b.bench[i] === null) return { area:'bench', idx:i };
+    return null;
+  };
+
+  while (true) {
+    const map = recompute();
+    let merged = false;
+    for (const [defId, byStar] of map.entries()) {
+      // Try highest to lowest star so chains bubble up quickly
+      const stars = Array.from(byStar.keys()).sort((a,b) => b - a);
+      for (const s of stars) {
+        const list = byStar.get(s)!;
+        while (list.length >= 2) {
+          const a = list.pop()!;
+          const d = list.pop()!;
+          // remove two
+          write(a, null);
+          write(d, null);
+          // place upgraded
+          const upgraded: Slot = { defId, stars: s + 1 };
+          let dest = firstEmpty();
+          if (!dest) dest = a; // overwrite one if full
+          write(dest, upgraded);
+          merges.push({ defId, fromStars: s, toStars: s + 1 });
+          merged = true;
         }
-        if (!placed) {
-          // fallback: overwrite one of the removed positions
-          write(a, upgraded);
-        }
-        merges.push({ defId, fromStars: s, toStars: s + 1 });
       }
     }
+    if (!merged) break;
   }
   return merges;
 }
