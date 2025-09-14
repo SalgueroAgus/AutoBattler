@@ -1,0 +1,83 @@
+{
+  "synergies": [
+    {
+      "tag": "ARCANE",
+      "thresholds": [2, 4],
+      "effects": {
+        "2": {"magicAmpPct": 0.1},
+        "4": {"magicAmpPct": 0.25}
+      }
+    },
+    {
+      "tag": "BRUISER",
+      "thresholds": [2, 4],
+      "effects": {
+        "2": {"hpBonusPct": 0.1},
+        "4": {"hpBonusPct": 0.25}
+      }
+    }
+  ],
+  "units": [
+    {
+      "id": "champ_aegis",
+      "name": "Aegis",
+      "rarity": "RARE",
+      "isChampion": true,
+      "stats": {"hp": 60, "defPhys": 6, "defMag": 4, "atkPhys": 10, "atkMag": 0, "atkSpeed": 1.0, "crit": 0.1, "critDmg": 1.5, "manaMax": 100},
+      "manaGain": {"perAttack": 40, "perHitTaken": 20},
+      "ability": {"kind": "shield", "cost": 100, "value": 25, "desc": "Gain a shield for 25 HP (replaces attack)."},
+      "tags": ["BRUISER"]
+    },
+    {
+      "id": "champ_ember",
+      "name": "Ember",
+      "rarity": "EPIC",
+      "isChampion": true,
+      "stats": {"hp": 45, "defPhys": 3, "defMag": 7, "atkPhys": 6, "atkMag": 12, "atkSpeed": 0.9, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
+      "manaGain": {"perAttack": 35, "perHitTaken": 20},
+      "ability": {"kind": "nuke", "cost": 100, "value": 20, "desc": "Deal 20 magic to the front enemy (replaces attack)."},
+      "tags": ["ARCANE"]
+    },
+    {
+      "id": "u_blade",
+      "name": "Blade",
+      "rarity": "COMMON",
+      "isChampion": false,
+      "stats": {"hp": 40, "defPhys": 4, "defMag": 2, "atkPhys": 9, "atkMag": 0, "atkSpeed": 1.1, "crit": 0.1, "critDmg": 1.5, "manaMax": 100},
+      "manaGain": {"perAttack": 50, "perHitTaken": 10},
+      "ability": {"kind": "onHitManaAttack", "cost": 100, "value": 12, "desc": "When mana full, add +12 physical to basic (does not replace)."},
+      "tags": ["BRUISER"]
+    },
+    {
+      "id": "u_myst",
+      "name": "Myst",
+      "rarity": "UNCOMMON",
+      "isChampion": false,
+      "stats": {"hp": 35, "defPhys": 2, "defMag": 5, "atkPhys": 5, "atkMag": 10, "atkSpeed": 1.0, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
+      "manaGain": {"perAttack": 34, "perHitTaken": 20},
+      "ability": {"kind": "manaReplace", "cost": 100, "value": 16, "desc": "When full mana, cast 16 magic instead of basic."},
+      "tags": ["ARCANE"]
+    },
+    {
+      "id": "u_guard",
+      "name": "Guard",
+      "rarity": "COMMON",
+      "isChampion": false,
+      "stats": {"hp": 55, "defPhys": 6, "defMag": 3, "atkPhys": 7, "atkMag": 0, "atkSpeed": 0.8, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
+      "manaGain": {"perAttack": 25, "perHitTaken": 30},
+      "ability": {"kind": "triggerOnDamaged", "cost": 100, "value": 10, "desc": "On reaching full mana from damage taken, taunt-attack for +10 physical."},
+      "tags": ["BRUISER"]
+    },
+    {
+      "id": "u_spark",
+      "name": "Spark",
+      "rarity": "RARE",
+      "isChampion": false,
+      "stats": {"hp": 30, "defPhys": 2, "defMag": 2, "atkPhys": 4, "atkMag": 14, "atkSpeed": 1.2, "crit": 0.05, "critDmg": 1.5, "manaMax": 100},
+      "manaGain": {"perAttack": 60, "perHitTaken": 10},
+      "ability": {"kind": "fastManaNuke", "cost": 100, "value": 14, "desc": "Fast caster: frequent 14 magic nukes (replaces attack)."},
+      "tags": ["ARCANE"]
+    }
+  ]
+}
+

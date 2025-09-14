@@ -1,0 +1,17 @@
+{
+  "initial": {"level": 1, "xp": 0},
+  "unlockEveryLevels": 10,
+  "minecraftCurve": true,
+  "levelXPFormula": "minecraft_v1",
+  "placementRewards": {
+    "1": 100,
+    "2": 70,
+    "3": 50,
+    "4": 40,
+    "5": 30,
+    "6": 20,
+    "7": 10,
+    "8": 5
+  }
+}
+

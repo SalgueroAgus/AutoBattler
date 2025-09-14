@@ -1,0 +1,34 @@
+# Node.js and npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+build/
+dist/
+temp/
+*.zip
+*.tar.gz
+
+# Editor and OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.*.local
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Phaser Editor specific files (if applicable)
+.skip

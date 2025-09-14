@@ -1,0 +1,25 @@
+{
+  "reroll": { "base": 1, "increment": 1 },
+  "roundRewards": {
+    "win": 5,
+    "loss": 3,
+    "survivorBonusPerUnit": 1,
+    "winStreakBonus": [0, 1, 2, 3]
+  },
+  "prices": {
+    "rarity": {
+      "COMMON": 3,
+      "UNCOMMON": 4,
+      "RARE": 5,
+      "EPIC": 6,
+      "LEGENDARY": 7
+    }
+  },
+  "levelUpReward": {
+    "unitLevelUpFractionOfCost": 0.5
+  },
+  "stageTopDamageReward": {
+    "formula": "shopLevel + enemyUnitsKilled + drainedHP"
+  }
+}
+

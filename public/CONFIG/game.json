@@ -1,0 +1,18 @@
+{
+  "deterministic": true,
+  "stages": 10,
+  "roundsPerStage": 2,
+  "initialPlayerHP": 20,
+  "playerLossBaseDamage": 1,
+  "rng": {
+    "defaultSeed": 123456789,
+    "allowExternalSeed": true
+  },
+  "turnOrder": "P1S1,P2S1,P1S2,P2S2,P1S3,P2S3",
+  "battle": {
+    "critMultiplier": 1.5,
+    "minDamage": 1,
+    "endRoundWhenNoActives": true
+  }
+}
+

@@ -1,0 +1,21 @@
+{
+  "visibleOptions": 3,
+  "levels": {
+    "start": 1,
+    "max": 5,
+    "levelUpOnStageEndEvery": 2
+  },
+  "rarities": ["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY"],
+  "probabilities": {
+    "1": {"COMMON": 75, "UNCOMMON": 20, "RARE": 5,  "EPIC": 0,  "LEGENDARY": 0},
+    "2": {"COMMON": 55, "UNCOMMON": 30, "RARE": 12, "EPIC": 3,  "LEGENDARY": 0},
+    "3": {"COMMON": 40, "UNCOMMON": 35, "RARE": 18, "EPIC": 6,  "LEGENDARY": 1},
+    "4": {"COMMON": 25, "UNCOMMON": 40, "RARE": 22, "EPIC": 10, "LEGENDARY": 3},
+    "5": {"COMMON": 10, "UNCOMMON": 35, "RARE": 30, "EPIC": 15, "LEGENDARY": 10}
+  },
+  "champion": {
+    "appearsForLeveling": true,
+    "usesSameRarityTable": true
+  }
+}
+

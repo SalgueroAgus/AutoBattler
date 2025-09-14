@@ -1,0 +1,6 @@
+{
+  "canvas": {"width": 960, "height": 540, "backgroundColor": "#14181f"},
+  "grid": {"cols": 3, "rows": 3, "cell": {"w": 90, "h": 90}, "padding": 8},
+  "colors": {"text": "#e6edf3", "accent": "#58a6ff", "ok": "#2ea043", "warn": "#d29922", "bad": "#f85149"}
+}
+
