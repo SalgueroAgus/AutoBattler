@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
+import { MainMenuScene } from './scenes/MainMenuScene';
 import { LobbyScene } from './scenes/LobbyScene';
 import { ChampionSelectScene } from './scenes/ChampionSelectScene';
 import { ShopScene } from './scenes/ShopScene';
@@ -19,6 +20,7 @@ async function start() {
     backgroundColor: ui.canvas.backgroundColor,
     scene: [
       BootScene,
+      MainMenuScene,
       LobbyScene,
       ChampionSelectScene,
       ShopScene,
@@ -32,4 +34,3 @@ async function start() {
 }
 
 start();
-

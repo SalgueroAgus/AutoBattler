@@ -18,6 +18,6 @@ export class BootScene extends Phaser.Scene {
     this.registry.set('cfg:champs', champs);
     this.registry.set('cfg:account', account);
 
-    this.scene.start('Lobby');
+    this.scene.start('MainMenu');
   }
 }

@@ -4,6 +4,7 @@ import { RNG } from '../engine/rng';
 import { PlayerState, UnitInstance } from '../engine/types';
 import { MatchState } from '../engine/match';
 import { GameConfig } from '../systems/configLoader';
+import { UnitCard } from '../ui/components/UnitCard';
 
 export class BattleScene extends Phaser.Scene {
   constructor() { super('Battle'); }
@@ -79,20 +80,22 @@ export class BattleScene extends Phaser.Scene {
     });
 
     // Visual layout helpers
-    const makeSlot = (x: number, y: number, def: any | null, stars: number) => {
-      const cont = this.add.container(x, y);
-      const rect = this.add.rectangle(0, 0, 120, 60, 0x223344).setStrokeStyle(2, 0x58a6ff);
-      const name = this.add.text(-50, -25, def ? def.name : '—', { color: ui.colors.text, fontSize: '12px' });
-      const star = this.add.text(40, -25, stars>1 ? `★${stars}` : '', { color: ui.colors.warn, fontSize: '12px' });
-      const hpBg = this.add.rectangle(0, 10, 110, 8, 0x222222).setOrigin(0.5, 0.5);
-      const hp = this.add.rectangle(-55, 10, 110, 8, 0x2ea043).setOrigin(0, 0.5);
-      const dmgTxt = this.add.text(-50, 22, def ? `DMG ${def.stats.dmg}` : '', { color: ui.colors.accent, fontSize: '11px' });
-      cont.add([rect, name, star, hpBg, hp, dmgTxt]);
-      return { cont, rect, name, star, hp } as any;
+    const makeCard = (x: number, y: number, def: any | null, stars: number) => {
+      if (!def) return null as any;
+      const c = new UnitCard(this, x, y, { name: def.name, rarity: def.rarity, tags: def.tags || [], stars, hp: def.stats.hp, dmg: def.stats.dmg, passiveDesc: def.passives?.[0]?.description }, 360, 220, 'compact');
+      return c;
     };
 
-    const p1SlotsUI = [0,1,2].map(i => makeSlot(200, 120 + i*90, p1Defs[i], p1Slots[i]?.stars || 1));
-    const p2SlotsUI = [0,1,2].map(i => makeSlot(760, 120 + i*90, p2Defs[i], p2Slots[i]?.stars || 1));
+    // Top/Bottom layout (enemy top, player bottom)
+    const rowGap = 80;
+    const cardW = 360;
+    const colGap = cardW + rowGap;
+    const cx = this.scale.width / 2;
+    const yTop = 280;
+    const yBottom = this.scale.height - 280;
+    const xPositions = [cx - colGap, cx, cx + colGap];
+    const p2SlotsUI = [0,1,2].map(i => makeCard(xPositions[i], yTop, p2Defs[i], p2Slots[i]?.stars || 1));
+    const p1SlotsUI = [0,1,2].map(i => makeCard(xPositions[i], yBottom, p1Defs[i], p1Slots[i]?.stars || 1));
 
     const maxHP1 = [0,1,2].map(i => {
       const s = p1Slots[i];
@@ -109,22 +112,18 @@ export class BattleScene extends Phaser.Scene {
       return Math.round(d.stats.hp * mult);
     });
 
+    // Track current DMG for dynamic updates
+    const p1CurDmg = [0,1,2].map(i => p1Defs[i] ? Math.round(p1Defs[i]!.stats.dmg * (p1Slots[i] ? (p1Slots[i]!.stars > 1 ? starMultiplier(p1Slots[i]!.stars) : 1) : 1)) : 0);
+    const p2CurDmg = [0,1,2].map(i => p2Defs[i] ? Math.round(p2Defs[i]!.stats.dmg * (p2Slots[i] ? (p2Slots[i]!.stars > 1 ? starMultiplier(p2Slots[i]!.stars) : 1) : 1)) : 0);
+
     const updateBars = (snap: any) => {
       for (let i = 0; i < 3; i++) {
         const s = snap.p1[i];
         const uiSlot = p1SlotsUI[i];
-        if (s && uiSlot) {
-          const pct = Math.max(0, Math.min(1, s.hp / (maxHP1[i] || 1)));
-          uiSlot.hp.width = 110 * pct;
-          // no mana bar in v2
-        }
+        if (s && uiSlot) uiSlot.setStats(Math.max(0, Math.floor(s.hp)), p1CurDmg[i] || 0);
         const s2 = snap.p2[i];
         const uiSlot2 = p2SlotsUI[i];
-        if (s2 && uiSlot2) {
-          const pct2 = Math.max(0, Math.min(1, s2.hp / (maxHP2[i] || 1)));
-          uiSlot2.hp.width = 110 * pct2;
-          // no mana bar in v2
-        }
+        if (s2 && uiSlot2) uiSlot2.setStats(Math.max(0, Math.floor(s2.hp)), p2CurDmg[i] || 0);
       }
     };
 
@@ -144,26 +143,54 @@ export class BattleScene extends Phaser.Scene {
       if (idx >= events.length) return;
       const ev = events[idx++] as CombatEvent;
       if (ev.type === 'pre') {
-        updateBars(ev.snapshots);
+        // Show chips for HP/DMG deltas
+        const d = ev.deltas;
+        const show = (arr: any[], uiSlots: any[], color: number, label: (x:any)=>string) => {
+          for (let i = 0; i < 3; i++) {
+            const delta = arr[i];
+            const ui = uiSlots[i];
+            if (!delta || !ui) continue;
+            if (delta.hp !== 0) {
+              const txt = this.add.text(ui.x, ui.y - 300, `${delta.hp > 0 ? '+' : ''}${delta.hp} HP`, { color: '#2ea043', fontSize: '18px' }).setOrigin(0.5);
+              this.tweens.add({ targets: txt, y: txt.y - 20, alpha: 0, duration: timings.floatMs, onComplete: () => txt.destroy() });
+            }
+            if (delta.dmg !== 0) {
+              const txt = this.add.text(ui.x, ui.y - 260, `${delta.dmg > 0 ? '+' : ''}${delta.dmg} DMG`, { color: '#58a6ff', fontSize: '18px' }).setOrigin(0.5);
+              this.tweens.add({ targets: txt, y: txt.y - 18, alpha: 0, duration: timings.floatMs, onComplete: () => txt.destroy() });
+            }
+          }
+        };
+        show(d.p1, p1SlotsUI, 0x2ea043, (x)=>'');
+        show(d.p2, p2SlotsUI, 0x2ea043, (x)=>'');
+        // Apply DMG changes to current values
+        for (let i = 0; i < 3; i++) {
+          if (d.p1[i]) p1CurDmg[i] += d.p1[i]!.dmg || 0;
+          if (d.p2[i]) p2CurDmg[i] += d.p2[i]!.dmg || 0;
+        }
+        // Stats will update on next event snapshots
       } else if (ev.type === 'act') {
         const actorUI = ev.actorSide === 1 ? p1SlotsUI[ev.actorSlot] : p2SlotsUI[ev.actorSlot];
         const targetUI = ev.actorSide === 1 ? p2SlotsUI[ev.targetSlot] : p1SlotsUI[ev.targetSlot];
-        if (actorUI) this.tweens.add({ targets: actorUI.rect, duration: timings.highlightMs, scale: 1.06, yoyo: true });
+        if (actorUI) this.tweens.add({ targets: actorUI, duration: timings.highlightMs, scale: 1.02, yoyo: true });
         if (targetUI && ev.damage > 0) {
-          const dmgText = this.add.text(targetUI.cont.x, targetUI.cont.y - 40, `-${ev.damage}`, { color: ui.colors.bad, fontSize: '16px' }).setOrigin(0.5);
-          this.tweens.add({ targets: dmgText, y: dmgText.y - 30, alpha: 0, duration: timings.floatMs, onComplete: () => dmgText.destroy() });
+          if (ev.action === 'mirror') {
+            actorUI?.flashDamage(ev.damage, 'mirror');
+          } else {
+            targetUI?.flashDamage(ev.damage, 'out');
+          }
         }
         updateBars(ev.snapshots);
       } else if (ev.type === 'death') {
         const uiSlot = ev.side === 1 ? p1SlotsUI[ev.slot] : p2SlotsUI[ev.slot];
-        if (uiSlot) this.tweens.add({ targets: uiSlot.cont, alpha: 0.25, duration: 200 });
+        if (uiSlot) this.tweens.add({ targets: uiSlot, alpha: 0.25, duration: 200 });
       } else if (ev.type === 'end') {
-        this.time.delayedCall(timings.actionMs, () => {
-          this.add.text(20, 20, `Battle Result: winner=${ev.result.winner}`, { color: ui.colors.text, fontSize: '14px' });
-          this.add.text(20, 300, 'Press N for results, R to replay', { color: ui.colors.accent, fontSize: '14px' });
-          this.input.keyboard!.addKey('N').once('down', () => this.scene.start('Results', { result: ev.result }));
-          this.input.keyboard!.addKey('R').once('down', () => this.scene.restart());
-        });
+        // Auto-advance: show short transition message and go to Results
+        const overlay = this.add.container(this.scale.width/2, this.scale.height/2).setDepth(5000);
+        const panel = this.add.rectangle(0, 0, 520, 140, 0x161b22).setStrokeStyle(2, 0x30363d).setOrigin(0.5);
+        const msg = this.add.text(0, -20, `Round finished — winner=${ev.result.winner}`, { color: ui.colors.text, fontSize: '24px' }).setOrigin(0.5);
+        const wait = this.add.text(0, 24, `Moving to results...`, { color: ui.colors.accent, fontSize: '18px' }).setOrigin(0.5);
+        overlay.add([panel, msg, wait]);
+        this.time.delayedCall(Math.max(700, timings.actionMs), () => this.scene.start('Results', { result: ev.result }));
         return; // stop scheduling further events
       }
       this.time.delayedCall(timings.actionMs, doEvent);

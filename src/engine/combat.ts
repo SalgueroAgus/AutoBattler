@@ -1,5 +1,5 @@
 import { RoundResult, UnitInstance, PlayerState } from './types';
-import { BattleContext, fireTrigger } from './passives';
+import { BattleContext, fireTrigger, fireTriggerStatsOnly, fireTriggerDamageOnly } from './passives';
 
 function deepCloneUnits(arr: Array<UnitInstance | null>): Array<UnitInstance | null> {
   return arr.map(u => (u ? JSON.parse(JSON.stringify(u)) as UnitInstance : null));
@@ -27,9 +27,9 @@ export function simulateRound(p1: PlayerState, p2: PlayerState, baseLoss: number
 }
 
 export type CombatEvent =
-  | { type: 'act'; actorSide: 1|2; actorSlot: number; targetSlot: number; action: 'hit'; damage: number; crit?: boolean; snapshots: { p1: Array<{ hp: number } | null>; p2: Array<{ hp: number } | null> } }
+  | { type: 'act'; actorSide: 1|2; actorSlot: number; targetSlot: number; action: 'hit'|'mirror'; damage: number; crit?: boolean; snapshots: { p1: Array<{ hp: number } | null>; p2: Array<{ hp: number } | null> } }
   | { type: 'death'; side: 1|2; slot: number }
-  | { type: 'pre'; side: 1|2; description?: string; snapshots: { p1: Array<{ hp: number } | null>; p2: Array<{ hp: number } | null> } }
+  | { type: 'pre'; deltas: { p1: Array<{ hp: number; dmg: number } | null>; p2: Array<{ hp: number; dmg: number } | null> } }
   | { type: 'end'; result: RoundResult };
 
 function snap(units: Array<UnitInstance | null>) {
@@ -44,11 +44,20 @@ export function simulateRoundWithEvents(p1: PlayerState, p2: PlayerState, baseLo
   const ctx: BattleContext = { p1: { units: a1, bench: b1 }, p2: { units: a2, bench: b2 }, procCount: new Map() };
   const events: CombatEvent[] = [];
 
-  // PreBattle passives (simultaneous)
-  fireTrigger(ctx, 1, 'preBattle', null);
-  fireTrigger(ctx, 2, 'preBattle', null);
-  events.push({ type: 'pre', side: 1, snapshots: { p1: snap(a1), p2: snap(a2) } });
-  events.push({ type: 'pre', side: 2, snapshots: { p1: snap(a1), p2: snap(a2) } });
+  // PreBattle: stats first (both sides), then damage (both sides); capture deltas
+  const beforeP1 = a1.map(u => (u ? { hp: u.current.hp, dmg: u.stats.dmg } : null));
+  const beforeP2 = a2.map(u => (u ? { hp: u.current.hp, dmg: u.stats.dmg } : null));
+  fireTriggerStatsOnly(ctx, 1, 'preBattle');
+  fireTriggerStatsOnly(ctx, 2, 'preBattle');
+  fireTriggerDamageOnly(ctx, 1, 'preBattle');
+  fireTriggerDamageOnly(ctx, 2, 'preBattle');
+  const afterP1 = a1.map(u => (u ? { hp: u.current.hp, dmg: u.stats.dmg } : null));
+  const afterP2 = a2.map(u => (u ? { hp: u.current.hp, dmg: u.stats.dmg } : null));
+  const deltas = {
+    p1: afterP1.map((x, i) => (x && beforeP1[i] ? { hp: x.hp - (beforeP1[i] as any).hp, dmg: x.dmg - (beforeP1[i] as any).dmg } : null)),
+    p2: afterP2.map((x, i) => (x && beforeP2[i] ? { hp: x.hp - (beforeP2[i] as any).hp, dmg: x.dmg - (beforeP2[i] as any).dmg } : null))
+  };
+  events.push({ type: 'pre', deltas });
 
   const order = [0,1,2];
   let turns = 0;
@@ -75,7 +84,7 @@ export function simulateRoundWithEvents(p1: PlayerState, p2: PlayerState, baseLo
           fireTrigger(ctx, 2, 'onReceivedDamage', tIdx);
           // log events
           events.push({ type: 'act', actorSide: 1, actorSlot: slot, targetSlot: tIdx, action: 'hit', damage: out, crit, snapshots: { p1: snap(a1), p2: snap(a2) } });
-          events.push({ type: 'act', actorSide: 2, actorSlot: tIdx, targetSlot: slot, action: 'hit', damage: back, snapshots: { p1: snap(a1), p2: snap(a2) } });
+          events.push({ type: 'act', actorSide: 2, actorSlot: tIdx, targetSlot: slot, action: 'mirror', damage: back, snapshots: { p1: snap(a1), p2: snap(a2) } });
           // deaths and triggers
           const died1 = u1.current.hp <= 0;
           const died2 = t2.current.hp <= 0;
@@ -102,7 +111,7 @@ export function simulateRoundWithEvents(p1: PlayerState, p2: PlayerState, baseLo
           fireTrigger(ctx, 1, 'onReceivedDamage', tIdx);
           fireTrigger(ctx, 2, 'onReceivedDamage', slot);
           events.push({ type: 'act', actorSide: 2, actorSlot: slot, targetSlot: tIdx, action: 'hit', damage: out, crit, snapshots: { p1: snap(a1), p2: snap(a2) } });
-          events.push({ type: 'act', actorSide: 1, actorSlot: tIdx, targetSlot: slot, action: 'hit', damage: back, snapshots: { p1: snap(a1), p2: snap(a2) } });
+          events.push({ type: 'act', actorSide: 1, actorSlot: tIdx, targetSlot: slot, action: 'mirror', damage: back, snapshots: { p1: snap(a1), p2: snap(a2) } });
           const died2 = u2.current.hp <= 0;
           const died1 = t1.current.hp <= 0;
           if (died1) events.push({ type: 'death', side: 1, slot: tIdx });

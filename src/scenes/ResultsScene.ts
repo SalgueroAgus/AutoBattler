@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { nextStage } from '../engine/match';
 import { mkEconomyFromConfig, rewardRound } from '../engine/economy';
+import { UIButton } from '../ui/components/UIButton';
 
 export class ResultsScene extends Phaser.Scene {
   constructor() { super('Results'); }
@@ -10,15 +11,14 @@ export class ResultsScene extends Phaser.Scene {
     const shop = this.registry.get('cfg:shop');
     const econCfg = this.registry.get('cfg:econ');
     const result = data?.result;
-    const lines = [
-      'Stage Results',
-      `Winner: ${result?.winner}`,
-      `Damage -> P1:${result?.damageToP1} P2:${result?.damageToP2}`
-    ];
-    this.add.text(20, 20, lines.join('\n'), { color: ui.colors.text, fontSize: '16px' });
-    this.add.text(20, 120, 'Press A to Account XP screen or S for next Shop', { color: ui.colors.accent, fontSize: '14px' });
-    this.input.keyboard!.addKey('A').once('down', () => this.scene.start('Account'));
-    this.input.keyboard!.addKey('S').once('down', () => {
+    const { width, height } = this.scale;
+    this.add.text(width/2, 140, 'Stage Results', { color: ui.colors.text, fontSize: '64px', fontFamily: 'Shadows Into Light, Arial' }).setOrigin(0.5);
+    const panel = this.add.rectangle(width/2, height/2 - 40, 720, 200, 0x161b22).setStrokeStyle(2, 0x30363d);
+    const summary = `Winner: ${result?.winner}\nDamage → P1: ${result?.damageToP1}    P2: ${result?.damageToP2}`;
+    this.add.text(width/2, height/2 - 40, summary, { color: ui.colors.text, fontSize: '24px' }).setOrigin(0.5);
+
+    const toAccount = () => this.scene.start('Account');
+    const toShop = () => {
       const match = this.registry.get('match');
       // Apply economy rewards to player XP
       const econ = mkEconomyFromConfig(econCfg);
@@ -32,8 +32,13 @@ export class ResultsScene extends Phaser.Scene {
       this.registry.set('playerWinStreak', won ? streak + 1 : 0);
       nextStage(match, shop);
       this.registry.set('match', match);
-      // Delay one tick to avoid re-entrancy issues during input callback
       this.time.delayedCall(0, () => this.scene.start('Shop'));
-    });
+    };
+
+    new UIButton(this, width/2 - 180, height/2 + 140, 'Account', toAccount);
+    new UIButton(this, width/2 + 180, height/2 + 140, 'Next Shop', toShop);
+
+    this.input.keyboard!.addKey('A').once('down', toAccount);
+    this.input.keyboard!.addKey('S').once('down', toShop);
   }
 }

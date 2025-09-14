@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { RNG } from '../engine/rng';
+import { UIButton } from '../ui/components/UIButton';
 import { initMatchState } from '../engine/match';
 
 export class LobbyScene extends Phaser.Scene {
@@ -20,7 +21,10 @@ export class LobbyScene extends Phaser.Scene {
     const match = initMatchState();
     this.registry.set('match', match);
 
-    const txt = this.add.text(20, 20, 'Lobby (8 players)\nClick to continue', { color: ui.colors.text, fontSize: '16px' });
-    this.input.once('pointerdown', () => this.scene.start('ChampionSelect'));
+    const { width, height } = this.scale;
+    this.add.text(width/2, height/2 - 200, 'Lobby — 8 Players', { color: ui.colors.text, fontSize: '64px', fontFamily: 'Shadows Into Light, Arial' }).setOrigin(0.5);
+    this.add.text(width/2, height/2 - 140, 'Seeded match; local human + 7 AI', { color: ui.colors.accent, fontSize: '20px' }).setOrigin(0.5);
+    new UIButton(this, width/2, height/2, 'Enter Champion Select', () => this.scene.start('ChampionSelect'));
+    new UIButton(this, width/2, height/2 + 100, 'Back to Main Menu', () => this.scene.start('MainMenu'));
   }
 }
