@@ -13,6 +13,8 @@
     "critMultiplier": 1.5,
     "minDamage": 1,
     "endRoundWhenNoActives": true
+  },
+  "merge": {
+    "starMultipliers": { "2": 1.5, "3": 2.25 }
   }
 }
-

@@ -10,7 +10,7 @@ export type UnitInstance = {
   id: string; defId: string; name: string; rarity: Rarity; level: number; stars: number;
   stats: UnitStats; ability: Ability; tags: string[]; isChampion: boolean;
   manaGain: { perAttack: number; perHitTaken: number };
-  current: { hp: number; mana: number };
+  current: { hp: number; mana: number; shield?: number };
 };
 
 export type PlayerBoard = {

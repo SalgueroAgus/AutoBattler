@@ -25,6 +25,7 @@ export type GameConfig = {
   rng: { defaultSeed: number; allowExternalSeed: boolean };
   turnOrder: string;
   battle: { critMultiplier: number; minDamage: number; endRoundWhenNoActives: boolean };
+  merge: { starMultipliers: Record<string, number> };
 };
 
 export async function loadGameConfig(): Promise<GameConfig> {
@@ -83,4 +84,3 @@ export type AccountConfig = {
 export async function loadAccountConfig(): Promise<AccountConfig> {
   return loadJSON(`${CONFIG_ROOT}/account.json`);
 }
-

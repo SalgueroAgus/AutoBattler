@@ -18,3 +18,13 @@ export function rewardUnitLevelUp(price: number, fraction: number): number {
   return Math.floor(price * fraction);
 }
 
+export function mkEconomyFromConfig(cfg: any): Economy {
+  return {
+    winXP: cfg.roundRewards.win,
+    lossXP: cfg.roundRewards.loss,
+    survivorBonusPerUnit: cfg.roundRewards.survivorBonusPerUnit,
+    winStreakBonus: cfg.roundRewards.winStreakBonus,
+    priceByRarity: cfg.prices.rarity,
+    unitLevelUpFraction: cfg.levelUpReward.unitLevelUpFractionOfCost
+  };
+}

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { RNG } from '../engine/rng';
+import { initMatchState } from '../engine/match';
 
 export class LobbyScene extends Phaser.Scene {
   constructor() { super('Lobby'); }
@@ -15,8 +16,11 @@ export class LobbyScene extends Phaser.Scene {
     const players = Array.from({ length: 8 }, (_, i) => ({ id: `P${i+1}`, human: i === 0 }));
     this.registry.set('players', players);
 
+    // Init match state
+    const match = initMatchState();
+    this.registry.set('match', match);
+
     const txt = this.add.text(20, 20, 'Lobby (8 players)\nClick to continue', { color: ui.colors.text, fontSize: '16px' });
     this.input.once('pointerdown', () => this.scene.start('ChampionSelect'));
   }
 }
-
