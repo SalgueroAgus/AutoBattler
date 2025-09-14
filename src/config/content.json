@@ -1,0 +1,106 @@
+{
+  "campeones": [
+    {
+      "unit_id": "champ_warden",
+      "nombre": "Vigía",
+      "rareza": "R",
+      "habilidad_campeon": "Fortaleza",
+      "descripcion_habilidad": "+1 DEF Física y Mágica a aliados en la fila frontal.",
+      "es_exclusivo_de_usuario": true,
+      "vendible": false,
+      "stats": { "hp": 8, "def_fis": 2, "def_mag": 1, "atk_fis": 2, "vel_atk": 1, "atk_mag": 0, "crit": 0.05, "crit_dmg": 1.5, "mana": 0 },
+      "habilidad": "Muro",
+      "descripcion_habilidad": "Al inicio de su turno, gana Escudo = 2 por 2 turnos.",
+      "etiquetas_sinergia": ["frontal", "tanque"],
+      "nivel": 1,
+      "estrella": 1
+    },
+    {
+      "unit_id": "champ_arcanist",
+      "nombre": "Arcanista",
+      "rareza": "SR",
+      "habilidad_campeon": "Afinar Tienda",
+      "descripcion_habilidad": "+10% probabilidad de rareza superior en tienda personal.",
+      "es_exclusivo_de_usuario": true,
+      "vendible": false,
+      "stats": { "hp": 6, "def_fis": 1, "def_mag": 2, "atk_fis": 1, "vel_atk": 1, "atk_mag": 3, "crit": 0.1, "crit_dmg": 1.6, "mana": 0 },
+      "habilidad": "Descarga",
+      "descripcion_habilidad": "Si mana>=30, inflige 4 de daño mágico al objetivo.",
+      "etiquetas_sinergia": ["caster"],
+      "nivel": 1,
+      "estrella": 1
+    },
+    {
+      "unit_id": "champ_commander",
+      "nombre": "Comandante",
+      "rareza": "E",
+      "habilidad_campeon": "Doctrina",
+      "descripcion_habilidad": "+1 daño básico a unidades en columna central.",
+      "es_exclusivo_de_usuario": true,
+      "vendible": false,
+      "stats": { "hp": 7, "def_fis": 1, "def_mag": 1, "atk_fis": 2, "vel_atk": 1, "atk_mag": 1, "crit": 0.05, "crit_dmg": 1.5, "mana": 0 },
+      "habilidad": "Grito",
+      "descripcion_habilidad": "Otorga +1 atk_fis a un aliado aleatorio por 2 turnos.",
+      "etiquetas_sinergia": ["soporte"],
+      "nivel": 1,
+      "estrella": 1
+    }
+  ],
+  "unidades": [
+    {
+      "unit_id": "u_soldado",
+      "nombre": "Soldado",
+      "rareza": "C",
+      "stats": { "hp": 6, "def_fis": 1, "def_mag": 0, "atk_fis": 2, "vel_atk": 1, "atk_mag": 0, "crit": 0.05, "crit_dmg": 1.5, "mana": 0 },
+      "habilidad": "Estocada",
+      "descripcion_habilidad": "Al atacar, 20% de aplicar +1 daño extra.",
+      "nivel": 1,
+      "estrella": 1,
+      "etiquetas_sinergia": ["frontal"]
+    },
+    {
+      "unit_id": "u_ballestero",
+      "nombre": "Ballestero",
+      "rareza": "R",
+      "stats": { "hp": 5, "def_fis": 0, "def_mag": 0, "atk_fis": 3, "vel_atk": 1, "atk_mag": 0, "crit": 0.15, "crit_dmg": 1.6, "mana": 0 },
+      "habilidad": "Precisión",
+      "descripcion_habilidad": "+10% crit si está en fila trasera.",
+      "nivel": 1,
+      "estrella": 1,
+      "etiquetas_sinergia": ["trasera"]
+    },
+    {
+      "unit_id": "u_mago",
+      "nombre": "Mago",
+      "rareza": "R",
+      "stats": { "hp": 4, "def_fis": 0, "def_mag": 1, "atk_fis": 0, "vel_atk": 1, "atk_mag": 3, "crit": 0.05, "crit_dmg": 1.5, "mana": 0 },
+      "habilidad": "Pirotecnia",
+      "descripcion_habilidad": "Gana +10 mana al recibir daño.",
+      "nivel": 1,
+      "estrella": 1,
+      "etiquetas_sinergia": ["caster"]
+    }
+  ],
+  "sinergias": [
+    {
+      "tag": "caster",
+      "criterios": "#unidades con 'caster' (incluye banca)",
+      "umbrales": [2, 3],
+      "efectos_por_umbral": [{ "+1 atk_mag": true }, { "+2 atk_mag": true }]
+    },
+    {
+      "tag": "frontal",
+      "criterios": "Unidades en fila frontal",
+      "umbrales": [2],
+      "efectos_por_umbral": [{ "+1 def_fis": true }]
+    }
+  ],
+  "pools_por_nivel_cuenta": {
+    "1": {
+      "pj": ["u_soldado", "u_ballestero", "u_mago"],
+      "campeones": ["champ_warden", "champ_arcanist", "champ_commander"]
+    },
+    "11": { "pj": [], "campeones": [] }
+  }
+}
+

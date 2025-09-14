@@ -1,0 +1,15 @@
+{
+  "accounts": [
+    {
+      "account_id": "user_1",
+      "nivel_cuenta": 4,
+      "xp_account": 150,
+      "desbloqueos": [],
+      "pools_desbloqueadas": {
+        "pj": [],
+        "campeones": []
+      },
+      "campeones_desbloqueados": []
+    }
+  ]
+}
